@@ -17,7 +17,7 @@ MAP_FILE := bin/$(TARGET).map
 
 # Добавляем общие флаги линковки
 # зачем --no-as-needed - https://gcc.gnu.org/ml/gcc-help/2017-03/msg00081.html
-CFLAGS += -Wall -Wextra -Werror -Wl,--no-as-needed -pthread
+CFLAGS += -std=c++17 -Wall -Wextra -Werror -Wl,--no-as-needed -pthread
 LDFLAGS += -Xlinker --gc-sections
 LDFLAGS += -o $@ -Wl,-Map="$(MAP_FILE)" 
 

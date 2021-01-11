@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/bin/lab1",
             "args": [],
-            "stopAtEntry": false,
+            "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,

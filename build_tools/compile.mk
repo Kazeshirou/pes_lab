@@ -17,7 +17,7 @@ OBJS = $(addprefix $(OBJS_PATH)/,$(TMP_OBJS))
 DEPS = $(addprefix $(DEPS_PATH)/,$(TMP_OBJS:.o=.d))
 
 CC :=  g++
-CFLAGS := $(OPTIMIZATION_LVL) -Wall -Wextra -Werror -ffunction-sections
+CFLAGS += -std=c++17 $(OPTIMIZATION_LVL) -Wall -Wextra -Werror -ffunction-sections 
 
 # Переменная содержит флаги для генерации файла с зависимостями обрабатываемого исходника.
 # Файл с зависимостями имеет путь: $(DEPS_PATH)/_path_to_source_/_source_name_.Td
