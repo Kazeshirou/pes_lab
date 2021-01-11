@@ -1,0 +1,1 @@
+DIRS += $(subst ./,,$(shell find common/ -type d))
