@@ -28,15 +28,19 @@ public:
         }
         std::list<const rule_t*> rules_stack;
 
-        bool rv = false;
+        bool   rv   = false;
+        size_t iter = 0;
+        print_iteration(iter);
+        print_current_state(rules_stack.begin(), rules_stack.end());
         add_rules_to_stack(rules, rules_stack);
         print_current_state(rules_stack.begin(), rules_stack.end());
 
         while (!rules_stack.empty()) {
+            print_iteration(iter);
             auto rule = rules_stack.back();
             rules_stack.pop_back();
+            print_current_state(rules_stack.begin(), rules_stack.end(), rule);
             working_memory_.insert(rule->result);
-
             print_current_state(rules_stack.begin(), rules_stack.end(), rule);
 
             if (rule->result == target) {
@@ -45,6 +49,7 @@ public:
             }
 
             add_rules_to_stack(rules, rules_stack);
+            print_current_state(rules_stack.begin(), rules_stack.end());
         }
 
         return rv;
@@ -63,16 +68,20 @@ public:
         }
 
         std::list<const rule_t*> rules_queue;
+        size_t                   iter = 0;
+        print_iteration(iter);
+        print_current_state(rules_queue.begin(), rules_queue.end());
 
         bool rv = false;
         add_rules_to_queue(rules, rules_queue);
         print_current_state(rules_queue.begin(), rules_queue.end());
 
         while (!rules_queue.empty()) {
+            print_iteration(iter);
             auto rule = rules_queue.front();
             rules_queue.pop_front();
+            print_current_state(rules_queue.begin(), rules_queue.end(), rule);
             working_memory_.insert(rule->result);
-
             print_current_state(rules_queue.begin(), rules_queue.end(), rule);
 
             if (rule->result == target) {
@@ -81,6 +90,7 @@ public:
             }
 
             add_rules_to_queue(rules, rules_queue);
+            print_current_state(rules_queue.begin(), rules_queue.end());
         }
 
         return rv;
@@ -108,7 +118,7 @@ public:
         size_t iter = 1;
 
         do {
-            std::cout << "Итерация " << iter++ << ": \n";
+            print_iteration(iter);
 
             auto current_fact = opened_facts_.back();
 
@@ -239,6 +249,10 @@ private:
             }
         }
         return false;
+    }
+
+    void print_iteration(size_t& iter) {
+        std::cout << "------ Итерация " << iter++ << " -------\n";
     }
 
     void print_current_state() {

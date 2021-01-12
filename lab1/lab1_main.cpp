@@ -11,13 +11,13 @@ int main() {
                                {"8", {"12"}},       {"8", {"13"}}};
     Graph             graph{rules};
 
-    bool res = graph.dfs({"4", "7", "10", "11"}, "1");
+    bool res = graph.dfs({"12", "7", "10", "11"}, "1");
     std::cout << "dfs res = " << (res ? "true" : "false") << std::endl;
 
-    res = graph.bfs({"4", "7", "10", "11"}, "1");
+    res = graph.bfs({"12", "7", "10", "11"}, "1");
     std::cout << "bfs res = " << (res ? "true" : "false") << std::endl;
 
-    res = graph.from_target({"4", "7", "10", "11"}, "1");
+    res = graph.from_target({"12", "7", "10", "11"}, "1");
     std::cout << "from_target res = " << (res ? "true" : "false") << std::endl;
 
     // bool res = graph.dfs({"4", "7", "10"}, "1");
