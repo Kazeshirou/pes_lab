@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <iostream>
 #include <iterator>
 #include <list>
@@ -33,9 +34,8 @@ public:
 
         while (!rules_stack.empty()) {
             auto rule = rules_stack.back();
-            working_memory_.insert(rule->result);
             rules_stack.pop_back();
-
+            working_memory_.insert(rule->result);
 
             print_current_state(rules_stack.begin(), rules_stack.end(), rule);
 
@@ -71,8 +71,8 @@ public:
         while (!rules_queue.empty()) {
             auto rule = rules_queue.front();
             rules_queue.pop_front();
-
             working_memory_.insert(rule->result);
+
             print_current_state(rules_queue.begin(), rules_queue.end(), rule);
 
             if (rule->result == target) {
@@ -82,6 +82,99 @@ public:
 
             add_rules_to_queue(rules, rules_queue);
         }
+
+        return rv;
+    }
+
+    bool from_target(const std::list<std::string>& input,
+                     const std::string&            target) {
+        std::cout << "\n\nПоиск от цели\n";
+
+        opened_facts_.clear();
+        closed_facts_.clear();
+        opened_rules_.clear();
+        closed_rules_.clear();
+
+        opened_facts_.push_back(target);
+
+        print_current_state();
+
+        std::list<const rule_t*> allowed_rules;
+        for (auto& rule : rules_) {
+            allowed_rules.push_back(&rule);
+        }
+
+        bool   rv   = false;
+        size_t iter = 1;
+
+        do {
+            std::cout << "Итерация " << iter++ << ": \n";
+
+            auto current_fact = opened_facts_.back();
+
+            bool is_rule_added = false;
+
+            for (auto it = allowed_rules.begin(); it != allowed_rules.end();
+                 it++) {
+                if ((*it)->result == current_fact) {
+                    opened_rules_.push_back(*it);
+                    allowed_rules.erase(it--);
+
+                    is_rule_added = true;
+                }
+            }
+
+            print_current_state();
+
+            if (is_rule_added) {
+                auto rule_preconditions = opened_rules_.back()->preconditions;
+
+                for (auto it = rule_preconditions.begin();
+                     it != rule_preconditions.end(); it++) {
+                    opened_facts_.push_back(*it);
+                }
+
+                print_current_state();
+                while (will_move_to_closed(input)) {
+                    auto resolved_fact = opened_facts_.back();
+                    opened_facts_.pop_back();
+                    closed_facts_.push_back(resolved_fact);
+
+                    print_current_state();
+
+                    if (opened_rules_.size()) {
+                        if (is_rule_can_be_closed(opened_rules_.back())) {
+                            closed_rules_.push_back(opened_rules_.back());
+                            opened_rules_.pop_back();
+
+                            print_current_state();
+                        }
+                    }
+                }
+
+                if (std::any_of(
+                        closed_facts_.begin(), closed_facts_.end(),
+                        [target](std::string& s) { return s == target; })) {
+                    rv = true;
+                    break;
+                }
+            } else {
+                opened_facts_.pop_back();
+
+                print_current_state();
+
+                if (opened_rules_.size()) {
+                    auto rule_preconditions =
+                        opened_rules_.back()->preconditions;
+
+                    if (!is_any_of_precondition_opened(rule_preconditions)) {
+                        opened_rules_.pop_back();
+
+                        print_current_state();
+                    }
+                }
+            }
+        } while (opened_facts_.size());
 
         return rv;
     }
@@ -114,6 +207,38 @@ private:
             }
         }
         return true;
+    }
+
+    bool is_rule_can_be_closed(const rule_t* rule) {
+        std::set<std::string_view> closed_set(closed_facts_.begin(),
+                                              closed_facts_.end());
+        for (auto& precondition : rule->preconditions) {
+            if (!closed_set.count(precondition)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    bool will_move_to_closed(const std::list<std::string>& input) {
+        return opened_facts_.size() &&
+               (std::any_of(input.begin(), input.end(),
+                            [this](const std::string& s) -> bool {
+                                return s == opened_facts_.back();
+                            }) ||
+                (closed_rules_.size() &&
+                 (closed_rules_.back()->result == opened_facts_.back())));
+    }
+
+    bool is_any_of_precondition_opened(
+        const std::set<std::string> preconditions) {
+        for (auto& opened_fact : opened_facts_) {
+            if (preconditions.count(opened_fact)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     void print_current_state() {
@@ -162,4 +287,8 @@ private:
 
     const std::list<rule_t>    rules_;
     std::set<std::string_view> working_memory_;
+    std::list<const rule_t*>   opened_rules_;
+    std::list<const rule_t*>   closed_rules_;
+    std::list<std::string>     opened_facts_;
+    std::list<std::string>     closed_facts_;
 };
