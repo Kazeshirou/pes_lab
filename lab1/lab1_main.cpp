@@ -20,6 +20,10 @@ int main() {
     res = graph.from_target({"12", "7", "10", "11"}, "1");
     std::cout << "from_target res = " << (res ? "true" : "false") << std::endl;
 
+    // res = graph.from_target({"5", "8", "12", "13", "7"}, "2");
+    // std::cout << "from_target res = " << (res ? "true" : "false") <<
+    // std::endl;
+
     // bool res = graph.dfs({"4", "7", "10"}, "1");
     // std::cout << "dfs res = " << (res ? "true" : "false") << std::endl;
 

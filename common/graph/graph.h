@@ -107,6 +107,8 @@ public:
 
         opened_facts_.push_back(target);
 
+        size_t iter = 0;
+        print_iteration(iter);
         print_current_state();
 
         std::list<const rule_t*> allowed_rules;
@@ -114,8 +116,7 @@ public:
             allowed_rules.push_back(&rule);
         }
 
-        bool   rv   = false;
-        size_t iter = 1;
+        bool rv = false;
 
         do {
             print_iteration(iter);
@@ -124,31 +125,32 @@ public:
 
             bool is_rule_added = false;
 
-            for (auto it = allowed_rules.begin(); it != allowed_rules.end();
+            for (auto it = allowed_rules.begin(); (it != allowed_rules.end());
                  it++) {
                 if ((*it)->result == current_fact) {
                     opened_rules_.push_back(*it);
                     allowed_rules.erase(it--);
 
                     is_rule_added = true;
+                    break;
                 }
             }
 
-            print_current_state();
+            print_current_state(current_fact);
 
             if (is_rule_added) {
-                auto rule_preconditions = opened_rules_.back()->preconditions;
+                auto current_rule       = opened_rules_.back();
+                auto rule_preconditions = current_rule->preconditions;
 
                 for (auto it = rule_preconditions.begin();
                      it != rule_preconditions.end(); it++) {
                     opened_facts_.push_back(*it);
                 }
 
-                print_current_state();
+                print_current_state(current_fact, current_rule);
                 while (will_move_to_closed(input)) {
-                    auto resolved_fact = opened_facts_.back();
+                    closed_facts_.push_back(opened_facts_.back());
                     opened_facts_.pop_back();
-                    closed_facts_.push_back(resolved_fact);
 
                     print_current_state();
 
@@ -255,11 +257,57 @@ private:
         std::cout << "------ Итерация " << iter++ << " -------\n";
     }
 
-    void print_current_state() {
-        std::cout << "Рабочая память: \n\t";
-        for (auto it = working_memory_.begin(); it != working_memory_.end();
-             it++) {
+    void print_current_state(const std::string_view current_fact = "",
+                             const rule_t*          current_rule = nullptr) {
+        std::string firs_without_enter = "";
+        if (current_fact.length()) {
+            std::cout << firs_without_enter << "Текущий факт: \n\t"
+                      << current_fact;
+            firs_without_enter = "\n";
+        }
+
+        if (current_rule) {
+            std::cout << firs_without_enter << "Текущee правило: \n";
+            std::cout << "\t" << current_rule->name << ": "
+                      << current_rule->result << " <- ";
+            for (auto it1 = current_rule->preconditions.begin();
+                 it1 != current_rule->preconditions.end(); it1++) {
+                std::cout << *it1 << " ";
+            }
+            std::cout << "\n";
+            firs_without_enter = "\n";
+        }
+
+        std::cout << firs_without_enter << "Список открытых фактов: \n\t";
+        for (auto it = opened_facts_.begin(); it != opened_facts_.end(); it++) {
             std::cout << *it << " ";
+        }
+
+
+        std::cout << "\nСписок закрытых фактов: \n\t";
+        for (auto it = closed_facts_.begin(); it != closed_facts_.end(); it++) {
+            std::cout << *it << " ";
+        }
+
+
+        std::cout << "\nСписок открытых правил: \n";
+        for (auto it = opened_rules_.begin(); it != opened_rules_.end(); it++) {
+            std::cout << "\t" << (*it)->name << ": " << (*it)->result << " <- ";
+            for (auto it1 = (*it)->preconditions.begin();
+                 it1 != (*it)->preconditions.end(); it1++) {
+                std::cout << *it1 << " ";
+            }
+            std::cout << "\n";
+        }
+
+        std::cout << "Список закрытых правил: \n";
+        for (auto it = closed_rules_.begin(); it != closed_rules_.end(); it++) {
+            std::cout << "\t" << (*it)->name << ": " << (*it)->result << " <- ";
+            for (auto it1 = (*it)->preconditions.begin();
+                 it1 != (*it)->preconditions.end(); it1++) {
+                std::cout << *it1 << " ";
+            }
+            std::cout << "\n";
         }
 
         std::cout << "\n\n";
